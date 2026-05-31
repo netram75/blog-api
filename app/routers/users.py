@@ -1,15 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr, Field
+# Import our blueprint from the new schemas folder
+from schemas.users import User
 
 # create a router instance for user
 router = APIRouter()
-
-# user validation blueprint
-class User(BaseModel):
-    id: int
-    name: str = Field(..., min_length=2, max_length=50)
-    role: str
-    email: EmailStr
 
 # In memory user database
 fake_user_db = {

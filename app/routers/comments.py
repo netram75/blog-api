@@ -1,14 +1,9 @@
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+# Import our blueprint from the new schemas folder
+from schemas.comments import Comment
 
 router = APIRouter()
 
-# comments validation blueprint
-class Comment(BaseModel):
-    id: int
-    post_id: int
-    test: str = Field(..., min_length=2, max_length=250)
-    author_id: int
 
 # in-memory comments database
 fake_comment_db = {

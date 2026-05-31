@@ -1,14 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, Field
-
+# Import our blueprint from the new schemas folder
+from schemas.posts import Post
 router = APIRouter()
 
-# post validation blueprint
-class Post(BaseModel):
-    id: int 
-    title: str = Field(..., min_length=3, max_length=100)
-    content: str = Field(..., min_length=10)
-    author_id: int
+
 
 # in memory blog post database
 fake_post_db = {
