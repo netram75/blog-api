@@ -2,6 +2,7 @@ from fastapi import FastAPI
 # import the router we jut created
 from routers.users import router as user_router
 from routers.posts import router as post_router
+from routers.comments import router as comment_router
 
 app = FastAPI()
 
@@ -14,3 +15,5 @@ app.include_router(user_router)
 
 #register the new blog post endpoints
 app.include_router(post_router)
+
+app.include_router(comment_router)
