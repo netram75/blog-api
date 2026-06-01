@@ -1,13 +1,14 @@
 from fastapi import APIRouter, HTTPException, status
 # Import our blueprint from the new schemas folder
-from schemas.posts import Post
+from schemas.posts import Post, TagCreate
+from routers.comments import fake_comment_db
 router = APIRouter()
 
 
 
 # in memory blog post database
 fake_post_db = {
-    1: {"id":1, "title":"Getting Started with FastAPI", "content":"FastAPI is a modern, fast web framework for building APIs with Python.", "authod_id":42},
+    1: {"id":1, "title":"Getting Started with FastAPI", "content":"FastAPI is a modern, fast web framework for building APIs with Python.", "authod_id":42, "tags": ["fastapi", "python", "tutorial"]},
     2:{"id":2, "title":"Understanding Routers", "content":"Routers help keep your backend code clean, organized, and modular.", "author_id":1}
 }
 
@@ -33,12 +34,28 @@ def get_posts(author_id: int | None = None, search: str | None = None, offset: i
     #apply the limit slicing (e.g. , [:10] returns the first 10 items)
     return results[offset : offset + limit]
 
-# read a single post
+# read one post (Now Aggregated with Comments!)
 @router.get("/posts/{post_id}")
-def get_post(post_id:int):
+def get_post(post_id: int):
+    # 1. Check if the post exists
     if post_id not in fake_post_db:
-        raise HTTPException(status_code=404, detail="post not found")
-    return fake_post_db[post_id]
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    # 2. Grab the post (We use .copy() so we don't accidentally modify the original database!)
+    post = fake_post_db[post_id].copy()
+    
+    # 3. Find all comments that belong to this post
+    # (Loop through all comments and keep the ones where post_id matches)
+    post_comments = [
+        comment for comment in fake_comment_db.values() 
+        if comment["post_id"] == post_id
+    ]
+    
+    # 4. Attach the comments directly into the post dictionary
+    post["comments"] = post_comments
+    
+    # 5. Return the massive, beautiful data bundle!
+    return post
 
 # create a brand new post (use 201 created!)
 @router.post("/posts", status_code=status.HTTP_201_CREATED)
@@ -68,4 +85,19 @@ def delete_post(post_id:int):
     # with a 204 status With a 204 status code, FastAPI automatically ignores any return statement body because a 204 response is strictly forbidden from carrying data payload.
     return None
     
-
+# Add a tag to a specific post
+@router.post("/posts/{post_id}/tags")
+def add_tag_to_post(post_id: int, tag: TagCreate):
+    # 1. Check if the post exists
+    if post_id not in fake_post_db:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    # 2. Grab the post
+    post = fake_post_db[post_id]
+    
+    # 3. Add the tag (only if it isn't already in the list to avoid duplicates!)
+    if tag.name not in post["tags"]:
+        post["tags"].append(tag.name)
+        
+    # 4. Return the updated post
+    return post
