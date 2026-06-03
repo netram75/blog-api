@@ -24,6 +24,23 @@ def get_user(user_id:int):
         raise HTTPException(status_code=404, detail = "user not found")
     return fake_user_db[user_id]
 
+@router.post("/users")
+def create_user(new_user: User):
+    # 1. Find the highest existing ID and add 1
+    new_id = max(fake_user_db.keys()) + 1
+    
+    # 2. Convert the Pydantic model to a dictionary
+    new_user_dict = new_user.model_dump()
+    
+    # 3. Assign the newly generated ID to the dictionary
+    new_user_dict["id"] = new_id
+    
+    # 4. Save it to our fake database
+    fake_user_db[new_id] = new_user_dict
+    
+    # 5. Return the newly created user
+    return new_user_dict
+
 # update a existing user
 @router.put("/users/{user_id}")
 def update_user(user_id:int, updated_user:User):
